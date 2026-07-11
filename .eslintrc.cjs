@@ -28,7 +28,7 @@ module.exports = {
       rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
     },
     {
-      files: ['server/**/*.ts'],
+      files: ['server/**/*.ts', 'api/**/*.ts'],
       env: { node: true, browser: false },
     },
   ],

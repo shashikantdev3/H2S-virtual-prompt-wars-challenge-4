@@ -10,7 +10,7 @@ real-time decision support.
 
 Built for **Challenge 4: Smart Stadiums & Tournament Operations**.
 
-> Live demo: deploy in one command to Google Cloud Run (see Deployment).
+> Live demo: deploy to Vercel in a few clicks (see Deployment).
 
 ---
 
@@ -120,21 +120,37 @@ Open http://localhost:5173. The client proxies `/api` to the server.
 | `npm run typecheck`     | TypeScript, no emit                          |
 | `npm run format`        | Format with Prettier                         |
 
-## 5. Deployment (Google Cloud Run, one command)
+## 5. Deployment (Vercel)
 
-The app is a single container. With the gcloud CLI installed and authenticated:
+The app deploys to Vercel with zero configuration: the Vite client is served as
+static assets and the API runs as serverless functions under `api/`
+(`/api/assistant`, `/api/ops`, `/api/stadium`, `/api/health`). Security headers
+are set in `vercel.json`.
+
+**Deploy from the dashboard (recommended):**
+
+1. Push this repo to GitHub.
+2. Go to vercel.com, click **Add New -> Project**, and import the repo.
+3. Vercel auto-detects the Vite framework (build `npm run build`, output `dist`).
+4. Optional: add an environment variable `GEMINI_API_KEY` to enable the
+   generative model (the app works fully without it).
+5. Click **Deploy**. You get a public HTTPS URL.
+
+**Deploy from the CLI:**
 
 ```bash
-# deploy with the offline fallback
-./deploy.sh
-
-# or deploy with the generative model enabled
-GEMINI_API_KEY=your_key ./deploy.sh
+npm i -g vercel
+vercel            # preview deploy
+vercel --prod     # production deploy
+# to enable GenAI:
+vercel env add GEMINI_API_KEY
 ```
 
-`deploy.sh` enables the required APIs and runs `gcloud run deploy --source .`,
-which builds the Dockerfile and returns a public HTTPS URL. See the script
-header for prerequisites and overrides (`PROJECT_ID`, `REGION`, `SERVICE`).
+The Gemini key is only ever read on the server (serverless functions), never
+shipped to the browser.
+
+> Portable alternative: a `Dockerfile` and `deploy.sh` are also included for
+> Google Cloud Run if you prefer a container (`./deploy.sh`).
 
 ## 6. Security
 
