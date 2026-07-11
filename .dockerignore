@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+.git
+.github
+*.log
+.env
+.env.*
+!.env.example
+npm-debug.log*
+Dockerfile
+.dockerignore
+.gcloudignore
+README.md
+ARCHITECTURE.md
+reel-prompts.md

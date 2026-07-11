@@ -1,0 +1,61 @@
+{
+  "name": "stadiumiq",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "StadiumIQ - a GenAI smart-stadium concierge and operations assistant for the FIFA World Cup 2026.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "tsx watch server/index.ts",
+    "build": "tsc -p tsconfig.json && vite build",
+    "start": "cross-env NODE_ENV=production tsx server/index.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "compression": "^1.7.5",
+    "cross-env": "^7.0.3",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/compression": "^1.7.5",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/supertest": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/coverage-v8": "^1.6.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "jsdom": "^24.1.0",
+    "prettier": "^3.3.2",
+    "supertest": "^7.0.0",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
+    "vitest": "^1.6.0"
+  }
+}
