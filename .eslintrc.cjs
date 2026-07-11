@@ -21,6 +21,11 @@ module.exports = {
       { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
     ],
     'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+    eqeqeq: ['error', 'smart'],
+    '@typescript-eslint/consistent-type-imports': [
+      'error',
+      { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+    ],
   },
   overrides: [
     {

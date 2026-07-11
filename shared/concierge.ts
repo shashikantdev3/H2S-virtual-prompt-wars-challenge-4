@@ -175,6 +175,18 @@ function formatMatch(m: Stadium['matches'][number]): string {
   return `${m.home} vs ${m.away} — ${m.stage}, ${when}`;
 }
 
+function noRoute(
+  intent: Intent,
+  lang: FanContext['language'],
+): ConciergeAnswer {
+  return {
+    intent,
+    language: lang,
+    text: t(lang, 'noRoute'),
+    generative: false,
+  };
+}
+
 /**
  * Deterministic, grounded responder. Answers directly from the knowledge base
  * with no external calls, so it is used both as the offline fallback and as the
@@ -195,26 +207,16 @@ export function answerFallback(
 
   if (wantsRoute) {
     const destination = extractDestination(stadium, message);
-    if (!destination) {
-      return {
-        intent,
-        language: lang,
-        text: t(lang, 'noRoute'),
-        generative: false,
-      };
+    const destZone = destination ? getZone(stadium, destination) : undefined;
+    const originZone = getZone(stadium, origin);
+    if (!destination || !destZone || !originZone) {
+      return noRoute(intent, lang);
     }
     const stepFree = context.accessibleRoute || intent === 'accessibility';
     const route = findRoute(stadium, origin, destination, stepFree);
     if (!route) {
-      return {
-        intent,
-        language: lang,
-        text: t(lang, 'noRoute'),
-        generative: false,
-      };
+      return noRoute(intent, lang);
     }
-    const destZone = getZone(stadium, destination)!;
-    const originZone = getZone(stadium, origin)!;
     const intro = stepFree ? t(lang, 'stepFreeRoute') : t(lang, 'routeIntro');
     const stepLines = route.steps.map(
       (s, i) =>
@@ -238,15 +240,17 @@ export function answerFallback(
     const destination = extractDestination(stadium, message);
     const zone = destination ? getZone(stadium, destination) : undefined;
     if (zone) {
+      const originZone = getZone(stadium, origin);
       const route = findRoute(
         stadium,
         origin,
         zone.id,
         context.accessibleRoute,
       );
-      const eta = route
-        ? ` (~${route.totalMinutes} ${t(lang, 'minutes')} from ${getZone(stadium, origin)!.name})`
-        : '';
+      const eta =
+        route && originZone
+          ? ` (~${route.totalMinutes} ${t(lang, 'minutes')} from ${originZone.name})`
+          : '';
       return {
         intent,
         language: lang,
