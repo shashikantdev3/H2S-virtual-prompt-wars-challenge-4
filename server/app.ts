@@ -4,27 +4,21 @@ import express, { type Express, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import { STADIUM } from '../shared/stadium';
-import {
-  generateRecommendations,
-  peakLevel,
-  simulateCongestion,
-} from '../shared/congestion';
-import { answerQuestion, isGenAiEnabled } from './genai';
-import { validateAssistantRequest } from './validation';
+import { getHealth, getOps, getStadium, postAssistant } from './controllers';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_DIST = path.resolve(__dirname, '..', 'dist');
 
 /**
- * Build the Express application. Kept as a factory (no side effects, no
- * listening) so tests can import and exercise the app directly.
+ * Build the Express application used for local development and integration
+ * tests. It is a thin transport over the shared controllers in
+ * `controllers.ts`; production on Vercel uses the functions in `api/` which
+ * call the same controllers. Kept as a side-effect-free factory so tests can
+ * import and exercise the app directly.
  */
 export function createApp(): Express {
   const app = express();
 
-  // Security headers. The CSP allows the app's own assets only; the client
-  // talks solely to same-origin /api endpoints.
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -44,7 +38,6 @@ export function createApp(): Express {
   app.use(compression());
   app.use(express.json({ limit: '16kb' }));
 
-  // Basic abuse protection on the API surface.
   const apiLimiter = rateLimit({
     windowMs: 60_000,
     max: 60,
@@ -54,40 +47,20 @@ export function createApp(): Express {
   app.use('/api', apiLimiter);
 
   app.get('/api/health', (_req: Request, res: Response) => {
-    res.json({ status: 'ok', genai: isGenAiEnabled() });
+    res.json(getHealth());
   });
 
   app.get('/api/stadium', (_req: Request, res: Response) => {
-    res.json(STADIUM);
+    res.json(getStadium());
   });
 
   app.get('/api/ops', (_req: Request, res: Response) => {
-    const congestion = simulateCongestion(STADIUM, Date.now());
-    res.json({
-      peak: peakLevel(congestion),
-      congestion,
-      recommendations: generateRecommendations(STADIUM, congestion),
-    });
+    res.json(getOps());
   });
 
   app.post('/api/assistant', async (req: Request, res: Response) => {
-    const parsed = validateAssistantRequest(req.body);
-    if (!parsed.ok) {
-      res.status(400).json({ error: parsed.error });
-      return;
-    }
-    try {
-      const answer = await answerQuestion(
-        STADIUM,
-        parsed.value.message,
-        parsed.value.context,
-      );
-      res.json({ answer, genaiEnabled: isGenAiEnabled() });
-    } catch {
-      res
-        .status(500)
-        .json({ error: 'The assistant is temporarily unavailable.' });
-    }
+    const result = await postAssistant(req.body);
+    res.status(result.status).json(result.body);
   });
 
   // Serve the built client in production, with SPA fallback for client routes.

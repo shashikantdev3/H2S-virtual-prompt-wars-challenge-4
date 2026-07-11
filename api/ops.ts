@@ -1,19 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { STADIUM } from '../shared/stadium';
-import {
-  generateRecommendations,
-  peakLevel,
-  simulateCongestion,
-} from '../shared/congestion';
+import { getOps } from '../server/controllers';
 
 export default function handler(
   _req: VercelRequest,
   res: VercelResponse,
 ): void {
-  const congestion = simulateCongestion(STADIUM, Date.now());
-  res.status(200).json({
-    peak: peakLevel(congestion),
-    congestion,
-    recommendations: generateRecommendations(STADIUM, congestion),
-  });
+  res.status(200).json(getOps());
 }

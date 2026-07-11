@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { isGenAiEnabled } from '../server/genai';
+import { getHealth } from '../server/controllers';
 
 export default function handler(
   _req: VercelRequest,
   res: VercelResponse,
 ): void {
-  res.status(200).json({ status: 'ok', genai: isGenAiEnabled() });
+  res.status(200).json(getHealth());
 }

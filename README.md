@@ -62,7 +62,9 @@ testable and safe to evaluate offline.
 Browser (React SPA)
    │  POST /api/assistant { message, context }
    ▼
-Express server (Node)
+API transport (Vercel functions in prod · Express in dev/tests)
+   ▼
+Shared controllers (server/controllers.ts) — one source of truth
    ├─ validate input (type, length, range)
    ├─ concierge: detect intent + build a grounded answer from the knowledge base
    │     └─ wayfinding: Dijkstra route (step-free aware)
@@ -74,9 +76,12 @@ Express server (Node)
 - **Frontend:** React + TypeScript (Vite). Two tabs: Fan Concierge (chat with
   language, location, and accessibility controls) and Operations (congestion
   meters + recommendations). Built to WCAG 2.1 AA.
-- **Backend:** Express + TypeScript, run with `tsx`. Endpoints: `/api/assistant`,
-  `/api/ops`, `/api/stadium`, `/api/health`. Helmet security headers,
-  compression, rate limiting, and strict input validation.
+- **Backend:** transport-agnostic controllers in `server/controllers.ts` hold
+  all endpoint logic (`/api/assistant`, `/api/ops`, `/api/stadium`,
+  `/api/health`). Two thin adapters call them: Vercel serverless functions
+  (`api/*.ts`) in production, and an Express server (`server/app.ts`) for local
+  dev and integration tests. Input is strictly validated; the Express server
+  adds Helmet, compression, and rate limiting.
 - **Shared domain (`shared/`):** pure, framework-free, fully unit-tested logic
   for the knowledge base, wayfinding, congestion, i18n, and the concierge.
 - **GenAI:** Google Gemini via `@google/generative-ai`. The key lives only on
@@ -157,9 +162,11 @@ shipped to the browser.
 - The Gemini API key is server-side only, injected as an environment variable,
   and never committed or exposed to the browser.
 - All API input is validated for type, length, and range before use.
-- Helmet sets a strict Content-Security-Policy and related headers; the API is
-  rate-limited; the JSON body size is capped.
-- The container runs as a non-root user.
+- Security headers (strict Content-Security-Policy, `X-Frame-Options`,
+  `Referrer-Policy`, HSTS) are applied via `vercel.json` in production and via
+  Helmet on the Express server; the JSON body size is capped and the Express
+  API is rate-limited.
+- The optional Docker image (for the Cloud Run path) runs as a non-root user.
 
 ## 7. Accessibility
 

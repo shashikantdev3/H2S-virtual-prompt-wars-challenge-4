@@ -39,8 +39,12 @@ there is a single source of truth for the venue model and routing.
 - **Context-driven logic.** Intent + fan context (language, location, access
   needs) determine the response. Step-free requests filter stair edges out of
   the routing graph.
-- **Single source of truth.** `shared/` is imported by both server and client,
-  so the venue model and routing never drift between layers.
+- **Single source of truth (data).** `shared/` is imported by both server and
+  client, so the venue model and routing never drift between layers.
+- **Single source of truth (endpoints).** All endpoint logic lives in
+  `server/controllers.ts`. The Vercel functions (`api/*.ts`, production) and the
+  Express server (`server/app.ts`, dev/tests) are thin transports that call the
+  same controllers, so the two deployment targets can never diverge.
 - **Security by construction.** Server-only API key, validated input, Helmet
   CSP, rate limiting, capped body size, non-root container.
 - **Testability.** The domain is pure and deterministic (congestion is seeded),
